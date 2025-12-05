@@ -1,74 +1,53 @@
 import streamlit as st
 import pandas as pd
-import pickle
-
-with open("/mount/src/car-price-prediction/decision_tree_car_model.pkl", "rb") as f:
-    model = pickle.load(f)
-
-with open("/mount/src/car-price-prediction/feature_columns.pkl", "rb") as f:
-    feature_columns = pickle.load(f)
+from sklearn.tree import DecisionTreeRegressor
 
 st.title("Car Price Prediction App")
-st.write("Enter the details of the car to predict its price:")
+st.write("Enter car details to predict its price:")
 
-numeric_cols = []
-brand_cols = []
-fuel_cols = []
-trans_cols = []
-condition_cols = []
-model_cols = []
+# --- Feature names ---
+feature_columns = [
+    "Year", "Mileage",
+    "Brand_Toyota", "Brand_Honda",
+    "Fuel_Petrol", "Fuel_Diesel",
+    "Transmission_Manual", "Transmission_Automatic",
+    "Condition_New", "Condition_Used"
+]
 
-for col in feature_columns:
-    if "_" not in col:
-        numeric_cols.append(col)
-    else:
-        if col.startswith("Brand_"):
-            brand_cols.append(col)
-        elif col.startswith("Fuel Type_"):
-            fuel_cols.append(col)
-        elif col.startswith("Transmission_"):
-            trans_cols.append(col)
-        elif col.startswith("Condition_"):
-            condition_cols.append(col)
-        elif col.startswith("Model_"):
-            model_cols.append(col)
+# --- Train a dummy Decision Tree model (for demo only) ---
+X_dummy = pd.DataFrame([[0]*len(feature_columns)], columns=feature_columns)
+y_dummy = [0]  # dummy target
+model = DecisionTreeRegressor()
+model.fit(X_dummy, y_dummy)
 
-brand_options = [c.replace("Brand_", "") for c in brand_cols]
-fuel_options = [c.replace("Fuel Type_", "") for c in fuel_cols]
-trans_options = [c.replace("Transmission_", "") for c in trans_cols]
-condition_options = [c.replace("Condition_", "") for c in condition_cols]
-model_options = [c.replace("Model_", "") for c in model_cols]
+# --- User Inputs ---
+year = st.number_input("Year", 1990, 2025, 2020)
+mileage = st.number_input("Mileage (km)", 0, 500000, 50000)
+brand = st.selectbox("Brand", ["Toyota", "Honda"])
+fuel = st.selectbox("Fuel Type", ["Petrol", "Diesel"])
+transmission = st.selectbox("Transmission", ["Manual", "Automatic"])
+condition = st.selectbox("Condition", ["New", "Used"])
 
-user_input = {}
-
-for col in numeric_cols:
-    user_input[col] = st.number_input(col, value=0)
-
-selected_brand = st.selectbox("Select Car Brand", brand_options)
-for b in brand_cols:
-    user_input[b] = 1 if b == "Brand_" + selected_brand else 0
-
-selected_fuel = st.selectbox("Select Fuel Type", fuel_options)
-for f in fuel_cols:
-    user_input[f] = 1 if f == "Fuel Type_" + selected_fuel else 0
-
-selected_trans = st.selectbox("Select Transmission Type", trans_options)
-for t in trans_cols:
-    user_input[t] = 1 if t == "Transmission_" + selected_trans else 0
-
-selected_condition = st.selectbox("Select Car Condition", condition_options)
-for c in condition_cols:
-    user_input[c] = 1 if c == "Condition_" + selected_condition else 0
-
-selected_model = st.selectbox("Select Car Model", model_options)
-for m in model_cols:
-    user_input[m] = 1 if m == "Model_" + selected_model else 0
+# --- Prepare input for prediction ---
+user_input = {
+    "Year": year,
+    "Mileage": mileage,
+    "Brand_Toyota": 1 if brand=="Toyota" else 0,
+    "Brand_Honda": 1 if brand=="Honda" else 0,
+    "Fuel_Petrol": 1 if fuel=="Petrol" else 0,
+    "Fuel_Diesel": 1 if fuel=="Diesel" else 0,
+    "Transmission_Manual": 1 if transmission=="Manual" else 0,
+    "Transmission_Automatic": 1 if transmission=="Automatic" else 0,
+    "Condition_New": 1 if condition=="New" else 0,
+    "Condition_Used": 1 if condition=="Used" else 0
+}
 
 input_df = pd.DataFrame([user_input])
 
+# --- Prediction ---
 if st.button("Predict Price"):
     prediction = model.predict(input_df)[0]
     st.success(f"Estimated Car Price: ${prediction:,.2f}")
 
-st.write("Note: Fill all fields to get an accurate prediction.")
+st.write("Note: Replace the dummy model with your trained Decision Tree for real predictions.")
 
