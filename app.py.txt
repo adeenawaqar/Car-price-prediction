@@ -1,0 +1,75 @@
+import streamlit as st
+import pandas as pd
+import pickle
+
+model_file = 'decision_tree_car_model.pkl'
+with open(model_file, 'rb') as f:
+    saved_data = pickle.load(f)
+
+model = saved_data['model']
+feature_columns = saved_data['features']
+
+st.title("Car Price Prediction App")
+st.write("Enter the details of the car to predict its price:")
+
+numeric_cols = []
+brand_cols = []
+fuel_cols = []
+trans_cols = []
+condition_cols = []
+model_cols = []
+
+for col in feature_columns:
+    if "_" not in col:
+        numeric_cols.append(col)
+    else:
+        if col.startswith("Brand_"):
+            brand_cols.append(col)
+        elif col.startswith("Fuel Type_"):
+            fuel_cols.append(col)
+        elif col.startswith("Transmission_"):
+            trans_cols.append(col)
+        elif col.startswith("Condition_"):
+            condition_cols.append(col)
+        elif col.startswith("Model_"):
+            model_cols.append(col)
+
+brand_options = [c.replace("Brand_", "") for c in brand_cols]
+fuel_options = [c.replace("Fuel Type_", "") for c in fuel_cols]
+trans_options = [c.replace("Transmission_", "") for c in trans_cols]
+condition_options = [c.replace("Condition_", "") for c in condition_cols]
+model_options = [c.replace("Model_", "") for c in model_cols]
+
+
+user_input = {}
+
+for col in numeric_cols:
+    user_input[col] = st.number_input(col, value=0)
+
+selected_brand = st.selectbox("Select Car Brand", brand_options)
+for b in brand_cols:
+    user_input[b] = 1 if b == "Brand_" + selected_brand else 0
+
+selected_fuel = st.selectbox("Select Fuel Type", fuel_options)
+for f in fuel_cols:
+    user_input[f] = 1 if f == "Fuel Type_" + selected_fuel else 0
+
+selected_trans = st.selectbox("Select Transmission Type", trans_options)
+for t in trans_cols:
+    user_input[t] = 1 if t == "Transmission_" + selected_trans else 0
+
+selected_condition = st.selectbox("Select Car Condition", condition_options)
+for c in condition_cols:
+    user_input[c] = 1 if c == "Condition_" + selected_condition else 0
+
+selected_model = st.selectbox("Select Car Model", model_options)
+for m in model_cols:
+    user_input[m] = 1 if m == "Model_" + selected_model else 0
+
+input_df = pd.DataFrame([user_input])
+
+if st.button("Predict Price"):
+    prediction = model.predict(input_df)[0]
+    st.success(f"Estimated Car Price: ${prediction:,.2f}")
+
+st.write("Note: Fill all the required fields to get an accurate prediction.")
