@@ -1,13 +1,8 @@
 import streamlit as st
 import pandas as pd
-import pickle
 
-model_file = 'decision_tree_car_model.pkl'
-with open(model_file, 'rb') as f:
-    saved_data = pickle.load(f)
-
-model = saved_data['model']
-feature_columns = saved_data['features']
+model = saved_model_here
+feature_columns = saved_features_list_here
 
 st.title("Car Price Prediction App")
 st.write("Enter the details of the car to predict its price:")
@@ -40,7 +35,6 @@ trans_options = [c.replace("Transmission_", "") for c in trans_cols]
 condition_options = [c.replace("Condition_", "") for c in condition_cols]
 model_options = [c.replace("Model_", "") for c in model_cols]
 
-
 user_input = {}
 
 for col in numeric_cols:
@@ -72,4 +66,4 @@ if st.button("Predict Price"):
     prediction = model.predict(input_df)[0]
     st.success(f"Estimated Car Price: ${prediction:,.2f}")
 
-st.write("Note: Fill all the required fields to get an accurate prediction.")
+st.write("Note: Fill all fields to get an accurate prediction.")
