@@ -50,5 +50,3 @@ price += color_effect.get(color, 0)
 
 if st.button("Predict Price"):
     st.success(f"Estimated Car Price: ${price:,.2f}")
-
-st.write("Note: This is a demo calculation. Replace with a real trained model for accurate predictions.")
